@@ -11,6 +11,12 @@ Y_MAX = 10
 AMPLITUDE = 1
 WAVELENGTH = 2
 FREQUENCY = 1
+PHASE_DIFFERENCE = 0
 
-# Time
+# Animation settings
+FRAMES = 300
+INTERVAL = 30
+
+# Other settings
 TIME = 0
+USE_INTENSITY = False

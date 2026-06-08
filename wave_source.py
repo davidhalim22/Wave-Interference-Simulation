@@ -19,6 +19,11 @@ class WaveSource:
 
     def generate_wave(self, X, Y, time):
         r = self.calculate_distance(X, Y)
-        wave = self.amplitude * np.sin(self.k * r - self.omega * time + self.phase)
+        
+        # Avoid divide by zero
+        r = np.where(r < 0.1, 0.1, r)
+        
+        # Calculate wave using the formula: A * sin(k*r - omega*t + phase) / sqrt(r)
+        wave = self.amplitude * np.sin(self.k * r - self.omega * time + self.phase) / np.sqrt(r)
         return wave
 
