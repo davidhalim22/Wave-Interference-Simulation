@@ -17,7 +17,6 @@ def plot_wave(wave, title="Wave"):
     plt.show()
 
 
-
 def plot_intensity(wave):
     intensity = wave**2
     plt.figure(figsize=(8,6))

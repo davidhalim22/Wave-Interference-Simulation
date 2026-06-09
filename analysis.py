@@ -40,6 +40,9 @@ def calculate_statistics(wave):
         "std": np.std(wave)
     }
 
+def percent_difference(a, b):
+    return abs(a - b) / (abs(a) + 1e-9) * 100
+
 def print_metrics(wave):
     print("Energy:", calculate_energy(wave))
     print("RMS:", calculate_rms(wave))

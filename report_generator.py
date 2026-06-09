@@ -20,3 +20,17 @@ Standard Deviation: {stats['std']:.4f}
 ==================================
 """
     return report
+
+def error_analysis(wave1, wave2):
+    energy1 = calculate_energy(wave1)
+    energy2 = calculate_energy(wave2)
+
+    diff = abs(energy1 - energy2)
+    percent_error = diff / energy1 * 100
+
+    return f"""
+ERROR ANALYSIS
+--------------
+Energy difference: {diff:.4f}
+Percent difference: {percent_error:.2f}%
+"""

@@ -7,7 +7,7 @@ X_MAX = 10
 Y_MIN = -10
 Y_MAX = 10
 
-# Wave settings
+# Wave settings                 # Parameters: Amplitude and Wavelength λ
 AMPLITUDE = 1
 WAVELENGTH = 2
 FREQUENCY = 1
