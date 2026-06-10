@@ -27,4 +27,3 @@ class WaveSource:
         # The division by sqrt(r) simulates the decrease in amplitude with distance (spherical spreading)
         wave = self.amplitude * np.sin(self.k * r - self.omega * time + self.phase) / np.sqrt(r)
         return wave
-

@@ -35,6 +35,7 @@ class WaveInterferenceGUI:
         self.use_intensity_var = tk.BooleanVar(value=self.config.use_intensity)
         self.live_update_var = tk.BooleanVar(value=False)
         self.randomization_mode_var = tk.StringVar(value="same")
+        self.highlight_mode_var = tk.StringVar(value="none")
         self.build_ui()
 
     def build_ui(self):
@@ -105,6 +106,33 @@ class WaveInterferenceGUI:
             variable=self.randomization_mode_var,
             value="different",
         ).grid(row=4, column=1, sticky="w")
+
+        highlight_label = ttk.Label(button_frame, text="Highlight interference:")
+        highlight_label.grid(row=5, column=0, columnspan=2, sticky="w", pady=(8, 2))
+        ttk.Radiobutton(
+            button_frame,
+            text="None",
+            variable=self.highlight_mode_var,
+            value="none",
+        ).grid(row=6, column=0, sticky="w", padx=(0, 4))
+        ttk.Radiobutton(
+            button_frame,
+            text="Constructive",
+            variable=self.highlight_mode_var,
+            value="constructive",
+        ).grid(row=6, column=1, sticky="w")
+        ttk.Radiobutton(
+            button_frame,
+            text="Destructive",
+            variable=self.highlight_mode_var,
+            value="destructive",
+        ).grid(row=7, column=0, sticky="w", padx=(0, 4))
+        ttk.Radiobutton(
+            button_frame,
+            text="Both",
+            variable=self.highlight_mode_var,
+            value="both",
+        ).grid(row=7, column=1, sticky="w")
 
         ttk.Button(button_frame, text="Apply Settings", command=self.apply_settings).grid(row=0, column=0, sticky="ew", padx=2)
         ttk.Button(button_frame, text="Run Simulation", command=self.run_simulation).grid(row=0, column=1, sticky="ew", padx=2)
@@ -385,6 +413,32 @@ class WaveInterferenceGUI:
             total_wave = total_wave**2
         self.animation_image.set_array(total_wave)
         self.animation_image.set_clim(vmin=np.min(total_wave), vmax=np.max(total_wave))
+        # update overlay highlight if enabled
+        if hasattr(self, 'overlay_image') and self.highlight_mode_var.get() != 'none':
+            # significance threshold
+            max_amp = max(np.max(np.abs(wave1)), np.max(np.abs(wave2)), 1e-6)
+            eps = 1e-3 * max_amp
+            sig_mask = (np.abs(wave1) > eps) & (np.abs(wave2) > eps)
+
+            cons_mask = (wave1 * wave2) > 0
+            destr_mask = (wave1 * wave2) < 0
+
+            cons_mask = cons_mask & sig_mask
+            destr_mask = destr_mask & sig_mask
+
+            # build RGBA overlay: constructive red, destructive blue
+            overlay = np.zeros((wave1.shape[0], wave1.shape[1], 4), dtype=float)
+            mode = self.highlight_mode_var.get()
+            alpha = 0.45
+            if mode in ('constructive', 'both'):
+                overlay[cons_mask, :3] = (1.0, 0.0, 0.0)
+                overlay[cons_mask, 3] = alpha
+            if mode in ('destructive', 'both'):
+                overlay[destr_mask, :3] = (0.0, 0.0, 1.0)
+                overlay[destr_mask, 3] = alpha
+
+            self.overlay_image.set_array(overlay)
+
         self.animation_canvas.draw_idle()
 
     def clear_log(self):
@@ -416,6 +470,15 @@ class WaveInterferenceGUI:
             cmap='viridis',
             animated=True,
         )
+        # overlay image for constructive/destructive highlighting (RGBA)
+        overlay_rgba = np.zeros((Y.shape[0], X.shape[1], 4), dtype=float)
+        self.overlay_image = self.animation_ax.imshow(
+            overlay_rgba,
+            extent=(self.config.x_min, self.config.x_max, self.config.y_min, self.config.y_max),
+            origin='lower',
+            animated=True,
+            zorder=2,
+        )
         self.animation_ax.scatter([source1.x, source2.x], [source1.y, source2.y], color='red', s=100)
         self.animation_time_text = self.animation_ax.text(0.02, 0.95, "", transform=self.animation_ax.transAxes, color="white")
 
@@ -436,10 +499,29 @@ class WaveInterferenceGUI:
                 total_wave = total_wave**2
             self.animation_image.set_array(total_wave)
             self.animation_image.set_clim(vmin=np.min(total_wave), vmax=np.max(total_wave))
+            # update overlay per frame
+            if hasattr(self, 'overlay_image') and self.highlight_mode_var.get() != 'none':
+                max_amp = max(np.max(np.abs(wave1)), np.max(np.abs(wave2)), 1e-6)
+                eps = 1e-3 * max_amp
+                sig_mask = (np.abs(wave1) > eps) & (np.abs(wave2) > eps)
+                cons_mask = (wave1 * wave2) > 0
+                destr_mask = (wave1 * wave2) < 0
+                cons_mask = cons_mask & sig_mask
+                destr_mask = destr_mask & sig_mask
+                overlay = np.zeros((wave1.shape[0], wave1.shape[1], 4), dtype=float)
+                mode = self.highlight_mode_var.get()
+                alpha = 0.45
+                if mode in ('constructive', 'both'):
+                    overlay[cons_mask, :3] = (1.0, 0.0, 0.0)
+                    overlay[cons_mask, 3] = alpha
+                if mode in ('destructive', 'both'):
+                    overlay[destr_mask, :3] = (0.0, 0.0, 1.0)
+                    overlay[destr_mask, 3] = alpha
+                self.overlay_image.set_array(overlay)
             self.animation_time_text.set_text(f"Time: {current_time:.2f}s")
             if self.animation is not None and hasattr(self.animation, 'event_source'):
                 self.animation.event_source.interval = self.config.interval
-            return [self.animation_image, self.animation_time_text]
+            return [self.animation_image, self.overlay_image, self.animation_time_text]
 
         frames = itertools.count() if self.config.frames <= 0 else self.config.frames
         self.animation = FuncAnimation(
