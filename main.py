@@ -50,9 +50,6 @@ Max Amplitude: {statistics['max']:.4f}
 
 print(generate_report(total_wave))
 
-error = abs(calculate_energy(wave1) - calculate_energy(wave2))
-print("Error between parameter sets:", error)
-
 print(error_analysis(wave1, wave2))
 
 # Compare energies using percent_difference
