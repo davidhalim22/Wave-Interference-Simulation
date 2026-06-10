@@ -30,8 +30,8 @@ wl2 = WAVELENGTH * rng.uniform(0.7, 3.0)
 print(f"Source1 amplitude={amp1:.3f}, wavelength={wl1:.3f}")
 print(f"Source2 amplitude={amp2:.3f}, wavelength={wl2:.3f}")
 
-source1 = WaveSource(x=-3, y=0, amplitude=amp1, wavelength=wl1, frequency=FREQUENCY)
-source2 = WaveSource(x=3, y=0, amplitude=amp2, wavelength=wl2, frequency=FREQUENCY, phase=PHASE_DIFFERENCE)
+source1 = WaveSource(x=-10, y=-3, amplitude=AMPLITUDE, wavelength=WAVELENGTH, frequency=FREQUENCY)
+source2 = WaveSource(x=-10, y=3, amplitude=AMPLITUDE, wavelength=WAVELENGTH, frequency=FREQUENCY, phase=PHASE_DIFFERENCE)
 
 wave1 = measure_runtime(source1.generate_wave, X, Y, TIME)
 wave2 = measure_runtime(source2.generate_wave, X, Y, TIME)
